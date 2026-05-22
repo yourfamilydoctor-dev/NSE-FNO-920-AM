@@ -1,0 +1,31 @@
+name: NSE FNO Scanner
+
+on:
+  schedule:
+    # 9:20 AM IST = 3:50 UTC
+    - cron: '50 3 * * 1-5'
+
+  workflow_dispatch:
+
+jobs:
+  run-script:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Libraries
+      run: pip install -r requirements.txt
+
+    - name: Run Script
+      env:
+        GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      run: python update_fno.py
