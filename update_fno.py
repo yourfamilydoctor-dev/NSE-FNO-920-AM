@@ -219,3 +219,22 @@ sheet_market.update("B2", [[dec]])
 sheet_market.update("B3", [[market_trend]])
 
 print("SUCCESS")
+for i in range(3):
+
+    try:
+
+        response = session.get(
+            fno_url,
+            headers=headers,
+            timeout=10
+        )
+
+        data = response.json()
+
+        break
+
+    except Exception as e:
+
+        print("Retry:", i)
+
+        time.sleep(5)
