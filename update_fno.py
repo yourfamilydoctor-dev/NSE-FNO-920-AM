@@ -48,21 +48,96 @@ headers = {
     "Accept-Encoding": "gzip, deflate, br"
 }
 
-session.get("https://www.nseindia.com", headers=headers)
+import time
 
 # ==============================
-# FETCH FNO STOCK LIST
+# CREATE NSE SESSION
 # ==============================
 
-fno_url = "https://www.nseindia.com/api/market-data-pre-open?key=FO"
+session = requests.Session()
 
-response = session.get(fno_url, headers=headers)
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept": "application/json,text/html",
+    "Referer": "https://www.nseindia.com/",
+    "Connection": "keep-alive"
+}
 
-data = response.json()
+# FIRST HIT HOMEPAGE
+homepage = session.get(
+    "https://www.nseindia.com",
+    headers=headers,
+    timeout=10
+)
+
+print("Homepage status:", homepage.status_code)
+
+# WAIT 3 SECONDS
+time.sleep(3)
+
+# NOW FETCH API
+fno_url = "https://www.nseindia.com/api/live-analysis-oi-spurts-underlyings"
+
+response = session.get(
+    fno_url,
+    headers=headers,
+    timeout=10
+)
+
+print("API status:", response.status_code)
+
+# DEBUG RESPONSE
+print(response.text[:500])
+
+# CHECK VALID RESPONSE
+if response.status_code != 200:
+    print("NSE API FAILED")
+    exit()
+
+try:
+    data = response.json()
+
+except Exception as e:
+    print("JSON ERROR")
+    print(e)
+    print(response.text[:1000])
+    exit()
 
 stocks = []
 
 for item in data["data"]:
+
+    try:
+
+        symbol = item["symbol"]
+
+        pchange = float(item["pChange"])
+
+        oi_change = float(item["oiChangePct"])
+
+        last_price = item["ltP"]
+
+        prev_close = 0
+
+        signal = ""
+
+        if pchange >= 2 and oi_change >= 7:
+
+            signal = "BULLISH"
+
+            stocks.append([
+                symbol,
+                last_price,
+                prev_close,
+                round(pchange, 2),
+                round(oi_change, 2),
+                signal
+            ])
+
+    except Exception as e:
+        print(e)
 
     try:
         meta = item["metadata"]
